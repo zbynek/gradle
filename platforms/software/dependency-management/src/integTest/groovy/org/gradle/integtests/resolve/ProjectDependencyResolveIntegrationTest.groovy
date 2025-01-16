@@ -547,7 +547,7 @@ project('c') {
     }
 
     // this test is largely covered by other tests, but does ensure that there is nothing special about
-    // project dependencies that are “built” by built in plugins like the Java plugin's created jars
+    // project dependencies that are "built" by built in plugins like the Java plugin's created jars
     def "can use zip files as project dependencies"() {
         given:
         createDirs("a", "b")

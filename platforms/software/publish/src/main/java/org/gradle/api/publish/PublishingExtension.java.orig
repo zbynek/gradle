@@ -20,7 +20,11 @@ import org.gradle.api.Action;
 import org.gradle.api.artifacts.dsl.RepositoryHandler;
 
 /**
+<<<<<<< Updated upstream
+ * The configuration of how to “publish” the different components of a project.
+=======
  * The configuration of how to "publish" the different components of a project.
+>>>>>>> Stashed changes
  *
  * @since 1.3
  */

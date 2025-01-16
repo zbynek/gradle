@@ -557,7 +557,7 @@ tasks.getByPath(":a:retrieve").dependsOn ":b:retrieve"
 
         and:
         def module = publishModule(mavenHttpRepo, "group", "projectA", "1.1-SNAPSHOT", false)
-        // Set the last modified to something that's not going to be anything “else”.
+        // Set the last modified to something that's not going to be anything "else".
         // There are lots of dates floating around in a resolution and we want to make
         // sure we use this.
         module.artifactFile.setLastModified(2000)
