@@ -35,14 +35,12 @@ class StronglyTypedConfigurationAttributesResolveIntegrationTest extends Abstrac
             def buildType = Attribute.of(BuildType)
             def extra = Attribute.of('extra', String)
 
-            allprojects {
-               dependencies {
-                   attributesSchema {
-                      attribute(flavor)
-                      attribute(buildType)
-                      attribute(extra)
-                   }
-               }
+            dependencies {
+                attributesSchema {
+                   attribute(flavor)
+                   attribute(buildType)
+                   attribute(extra)
+                }
             }
         '''
     }
