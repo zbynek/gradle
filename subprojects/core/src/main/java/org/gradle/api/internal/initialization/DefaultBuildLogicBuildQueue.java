@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.initialization;
 
+import com.google.common.collect.ImmutableList;
 import org.gradle.cache.FileLock;
 import org.gradle.cache.FileLockManager;
 import org.gradle.composite.internal.BuildTreeWorkGraphController;
@@ -24,6 +25,10 @@ import org.gradle.initialization.layout.ProjectCacheDir;
 import org.gradle.internal.build.BuildState;
 import org.gradle.internal.build.StandAloneNestedBuild;
 import org.gradle.internal.buildtree.BuildTreeLifecycleController;
+import org.gradle.internal.operations.BuildOperationContext;
+import org.gradle.internal.operations.BuildOperationDescriptor;
+import org.gradle.internal.operations.BuildOperationRunner;
+import org.gradle.internal.operations.CallableBuildOperation;
 
 import java.io.File;
 import java.util.List;
@@ -35,31 +40,62 @@ import static org.gradle.cache.internal.filelock.DefaultLockOptions.mode;
 
 public class DefaultBuildLogicBuildQueue implements BuildLogicBuildQueue {
 
+    private final BuildOperationRunner runner;
     private final FileLockManager fileLockManager;
     private final BuildTreeWorkGraphController buildTreeWorkGraphController;
     private final ProjectCacheDir projectCacheDir;
     private final ReentrantLock lock = new ReentrantLock();
 
     public DefaultBuildLogicBuildQueue(
+        BuildOperationRunner runner,
         FileLockManager fileLockManager,
         BuildTreeWorkGraphController buildTreeWorkGraphController,
         ProjectCacheDir projectCacheDir
     ) {
+        this.runner = runner;
         this.fileLockManager = fileLockManager;
         this.buildTreeWorkGraphController = buildTreeWorkGraphController;
         this.projectCacheDir = projectCacheDir;
     }
 
+    private static class OperationDetails {
+        private final List<String> requestedTasks;
+
+        public List<String> getRequestedTasks() {
+            return requestedTasks;
+        }
+
+        OperationDetails(List<TaskIdentifier.TaskBasedTaskIdentifier> tasks) {
+            ImmutableList.Builder<String> builder = ImmutableList.builderWithExpectedSize(tasks.size());
+            tasks.forEach(ti -> {
+                builder.add(ti.getBuildIdentifier().getBuildPath() + ":" + ti.getTaskPath());
+            });
+            requestedTasks = builder.build();
+        }
+    }
+
     @Override
     public <T> T build(BuildState requester, List<TaskIdentifier.TaskBasedTaskIdentifier> tasks, Supplier<T> continuationUnderLock) {
-        return tasks.isEmpty()
-            ? continuationUnderLock.get() // no resources to be protected
-            : withBuildLogicQueueLock(() -> doBuild(tasks, continuationUnderLock));
+        if (tasks.isEmpty()) {
+            return continuationUnderLock.get();  // no resources to be protected
+        }
+        return runner.call(new CallableBuildOperation<T>() {
+            @Override
+            public T call(BuildOperationContext context) {
+                return withBuildLogicQueueLock(() -> doBuild(tasks, continuationUnderLock));
+            }
+
+            @Override
+            public BuildOperationDescriptor.Builder description() {
+                return BuildOperationDescriptor.displayName("Build build logic for " + requester.getDisplayName().getDisplayName())
+                    .details(new OperationDetails(tasks));
+            }
+        });
     }
 
     @Override
     public <T> T buildBuildSrc(StandAloneNestedBuild buildSrcBuild, Function<BuildTreeLifecycleController, T> continuationUnderLock) {
-        return withBuildLogicQueueLock(() -> buildSrcBuild.run(controller -> continuationUnderLock.apply(controller)));
+        return withBuildLogicQueueLock(() -> buildSrcBuild.run(continuationUnderLock));
     }
 
     private <T> T doBuild(List<TaskIdentifier.TaskBasedTaskIdentifier> tasks, Supplier<T> continuationUnderLock) {
