@@ -50,7 +50,7 @@ public abstract class HelpTasksPlugin implements Plugin<Project>, DiagnosticsTas
     public static final String OUTGOING_VARIANTS_TASK = DiagnosticsTaskNames.OUTGOING_VARIANTS_TASK;
 
     /**
-     * The name of the requested configurations report task.
+     * The name of the resolvable configurations report task.
      *
      * @since 7.5
      */
