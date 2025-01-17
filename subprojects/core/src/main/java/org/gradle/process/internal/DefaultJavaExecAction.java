@@ -26,7 +26,6 @@ import org.gradle.api.provider.ListProperty;
 import org.gradle.api.provider.MapProperty;
 import org.gradle.api.provider.Property;
 import org.gradle.api.provider.Provider;
-import org.gradle.internal.jvm.JavaModuleDetector;
 import org.gradle.process.CommandLineArgumentProvider;
 import org.gradle.process.ExecResult;
 import org.gradle.process.JavaDebugOptions;
@@ -48,8 +47,6 @@ public class DefaultJavaExecAction implements JavaExecAction {
 
     private final DefaultJavaExecSpec javaExecSpec;
     private final JavaExecHandleBuilder javaExecHandleBuilder;
-    @Nullable
-    private final JavaModuleDetector javaModuleDetector;
 
     @Inject
     public DefaultJavaExecAction(
@@ -58,7 +55,6 @@ public class DefaultJavaExecAction implements JavaExecAction {
     ) {
         this.javaExecSpec = javaExecSpec;
         this.javaExecHandleBuilder = javaExecHandleBuilder;
-        this.javaModuleDetector = javaExecHandleBuilder.getJavaModuleDetector();
         // JavaExecHandleBuilder has default java executable set
         getExecutable().set(javaExecHandleBuilder.getExecutable());
     }
@@ -258,7 +254,7 @@ public class DefaultJavaExecAction implements JavaExecAction {
             javaExecSpec.getMainClass(),
             javaExecSpec.getMainModule(),
             javaExecSpec.getModularity(),
-            javaModuleDetector
+            javaExecHandleBuilder.getJavaModuleDetector()
         ));
     }
 
