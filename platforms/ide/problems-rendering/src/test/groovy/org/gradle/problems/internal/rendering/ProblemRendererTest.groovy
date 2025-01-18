@@ -16,10 +16,10 @@
 
 package org.gradle.problems.internal.rendering
 
+
 import org.gradle.api.problems.ProblemGroup
 import org.gradle.api.problems.internal.AdditionalDataBuilderFactory
 import org.gradle.api.problems.internal.DefaultProblemBuilder
-import org.gradle.api.problems.internal.DefaultProblemGroup
 import org.gradle.api.problems.internal.GradleCoreProblemGroup
 import spock.lang.Issue
 import spock.lang.Specification
@@ -147,10 +147,10 @@ class ProblemRendererTest extends Specification {
     }
 
     private static ProblemGroup getLevel0Group() {
-        return new DefaultProblemGroup("test-group-0", "Test group level 0", null);
+        return ProblemGroup.create("test-group-0", "Test group level 0", null);
     }
 
     private static ProblemGroup getLevel1Group() {
-        return new DefaultProblemGroup("test-group-1", "Test group level 1", getLevel0Group());
+        return ProblemGroup.create("test-group-1", "Test group level 1", getLevel0Group());
     }
 }
